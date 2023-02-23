@@ -4,7 +4,7 @@ Controller.search = async (evt) => {
   evt.preventDefault();
   const form = evt.target;
   const fData = new FormData(form);
-  const query = fData.get('query');
+  const query = fData.get("query");
   // TODO handle validation
   // TODO update UI that search has begun
 
