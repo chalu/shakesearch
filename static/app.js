@@ -3,7 +3,8 @@ const Controller = {};
 Controller.search = async (evt) => {
   evt.preventDefault();
   const form = evt.target;
-  const query = (new FormData(form)).get('query');
+  const fData = new FormData(form);
+  const query = fData.get('query');
   // TODO handle validation
   // TODO update UI that search has begun
 
