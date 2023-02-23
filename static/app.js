@@ -1,14 +1,27 @@
 const Controller = {};
 
-Controller.search = (ev) => {
-  ev.preventDefault();
-  const form = document.getElementById('form');
-  const data = Object.fromEntries(new FormData(form));
-  const response = fetch(`/search?q=${data.query}`).then((response) => {
-    response.json().then((results) => {
-      Controller.updateTable(results);
-    });
-  });
+Controller.search = async (evt) => {
+  evt.preventDefault();
+  const form = evt.target;
+  const { query } = Object.fromEntries(new FormData(form));
+  // TODO handle validation
+  // TODO update UI that search has begun
+
+  let results;
+  try {
+    const response = await fetch(`/search?q=${query}`);
+    results = await response.json();
+  } catch (err) {
+    console.warn(err.message);
+    // TODO inform user
+  } finally {
+    // TODO update UI that search has ended
+  }
+
+  if (results) {
+    // TODO expand on this check if needed
+    Controller.updateTable(results);
+  }
 };
 
 Controller.updateTable = (results) => {
