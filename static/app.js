@@ -20,17 +20,25 @@ Controller.search = async (evt) => {
 
   if (results) {
     // TODO expand on this check if needed
-    Controller.updateTable(results);
+    Controller.displayResults(results);
   }
 };
 
-Controller.updateTable = (results) => {
-  const table = document.getElementById('table-body');
-  const rows = [];
-  for (let result of results) {
-    rows.push(`<tr>${result}<tr/>`);
-  }
-  table.innerHTML = rows;
+// TODO move away from displaying the results with a table
+Controller.displayResults = (results) => {
+  const rows = results.reduce((trs, txt) => {
+    const tr = document.createElement('tr');
+    // TODO If needed, sanitize txt before displaying it
+    // Dev tools shows it has some special chars (\r\n e.t.c)
+    tr.innerText = txt;
+    trs.push(tr);
+    return trs;
+  }, []);
+
+  requestAnimationFrame(() => {
+    const tBody = document.querySelector('#table-body');
+    tBody.append(rows);
+  });
 };
 
 const startApp = () => {
