@@ -45,6 +45,7 @@ const startApp = () => {
   const form = document.querySelector('#form');
   if (form) {
     form.addEventListener('submit', Controller.search);
+    form.querySelector('input[type=text]').focus();
   }
 };
 
