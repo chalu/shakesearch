@@ -7,17 +7,18 @@ Controller.search = async (evt) => {
   // TODO handle validation
   // TODO update UI that search has begun
 
-  let results;
-  try {
-    const response = await fetch(`/search?q=${query}`);
-    results = await response.json();
-  } catch (err) {
-    console.warn(err.message);
-    // TODO inform user
-  } finally {
-    // TODO update UI that search has ended
-  }
+  // let results;
+  // try {
+  //   const response = await fetch(`/search?q=${query}`);
+  //   results = await response.json();
+  // } catch (err) {
+  //   console.warn(err.message);
+  //   // TODO inform user
+  // } finally {
+  //   // TODO update UI that search has ended
+  // }
 
+  const results = ['kjfehskdfksdfsdfs', 'dgfdfgsfgagadsvd', 'fsadfsdfdsfsdf'];
   if (results) {
     // TODO expand on this check if needed
     Controller.displayResults(results);
@@ -35,9 +36,14 @@ Controller.displayResults = (results) => {
     return trs;
   }, []);
 
+  const tBody = document.querySelector('#table-body');
   requestAnimationFrame(() => {
-    const tBody = document.querySelector('#table-body');
-    tBody.append(rows);
+    while (tBody.firstChild) {
+      tBody.removeChild(tBody.firstChild);
+    }
+    requestAnimationFrame(() => {
+      tBody.append(...rows);
+    });
   });
 };
 
