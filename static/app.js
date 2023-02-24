@@ -1,6 +1,10 @@
 const Controller = {};
 const validationPtrn = /^[a-zA-Z]{3,}[ a-zA-Z]+$/;
 
+State = {
+  searching: false,
+};
+
 Controller.showSnackBar = (msg) => {
   const snkBar = document.querySelector("#snackbar");
   requestAnimationFrame(() => {
@@ -17,27 +21,39 @@ Controller.showSnackBar = (msg) => {
 };
 
 Controller.signalSearchStarted = () => {
-  const spnr = document.querySelector('#form span.spinner-grow');
-  const ico = document.querySelector('#form svg.bi-search');
+  const spnr = document.querySelector("#form span.spinner-grow");
+  const ico = document.querySelector("#form svg.bi-search");
+  const input = document.querySelector("#form input[type=text]");
+  const btn = document.querySelector("#form button[type=submit]");
 
   requestAnimationFrame(() => {
-    spnr.classList.remove('visually-hidden');
-    ico.classList.add('visually-hidden');
-  })
+    spnr.classList.remove("visually-hidden");
+    ico.classList.add("visually-hidden");
+    input.setAttribute("readonly", "readonly");
+    btn.setAttribute("disabled", "disabled");
+  });
+  State.searching = true;
 };
 
 Controller.signalSearchEnded = () => {
-  const spnr = document.querySelector('#form span.spinner-grow');
-  const ico = document.querySelector('#form svg.bi-search');
+  const spnr = document.querySelector("#form span.spinner-grow");
+  const ico = document.querySelector("#form svg.bi-search");
+  const input = document.querySelector("#form input[type=text]");
+  const btn = document.querySelector("#form button[type=submit]");
 
   requestAnimationFrame(() => {
-    spnr.classList.add('visually-hidden');
-    ico.classList.remove('visually-hidden');
-  })
+    spnr.classList.add("visually-hidden");
+    ico.classList.remove("visually-hidden");
+    input.removeAttribute("readonly");
+    btn.removeAttribute("disabled");
+  });
+  State.searching = false;
 };
 
 Controller.search = async (evt) => {
   evt.preventDefault();
+  if (State.searching) return;
+
   const form = evt.target;
   const fData = new FormData(form);
   const query = fData.get("query").trim();
