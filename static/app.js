@@ -1,12 +1,26 @@
-const Controller = {};
-const State = {
-  prevQry: "",
-  searching: false,
+const ShakeSearch = {
+  UI: {},
+  State: {
+    prevQry: "",
+    searching: false,
+  },
+  Controller: {},
 };
+
 const validationPtrn = /^[a-zA-Z]{3}[ a-zA-Z]*$/;
 
-Controller.showSnackBar = (msg) => {
-  const snkBar = document.querySelector("#snackbar");
+ShakeSearch.UI.get = (...selectors) => {
+  const nodes = selectors.reduce((gatherer, sel) => {
+    gatherer.push(document.querySelector(sel));
+    return gatherer;
+  }, []);
+
+  if (nodes.length === 1) return nodes[0];
+  return nodes;
+};
+
+ShakeSearch.Controller.showSnackBar = (msg) => {
+  const snkBar = ShakeSearch.UI.get("#snackbar");
   requestAnimationFrame(() => {
     snkBar.innerText = msg;
     snkBar.classList.add("show");
@@ -20,11 +34,13 @@ Controller.showSnackBar = (msg) => {
   }, 3000);
 };
 
-Controller.signalSearchStarted = () => {
-  const spnr = document.querySelector("#form span.spinner-grow");
-  const ico = document.querySelector("#form svg.bi-search");
-  const input = document.querySelector("#form input[type=text]");
-  const btn = document.querySelector("#form button[type=submit]");
+ShakeSearch.Controller.signalSearchStarted = () => {
+  const [spnr, ico, input, btn] = ShakeSearch.UI.get(
+    "#form span.spinner-grow",
+    "#form svg.bi-search",
+    "#form input[type=text]",
+    "#form button[type=submit]"
+  );
 
   requestAnimationFrame(() => {
     spnr.classList.remove("visually-hidden");
@@ -32,14 +48,17 @@ Controller.signalSearchStarted = () => {
     input.setAttribute("readonly", "readonly");
     btn.setAttribute("disabled", "disabled");
   });
-  State.searching = true;
+
+  ShakeSearch.State.searching = true;
 };
 
-Controller.signalSearchEnded = () => {
-  const spnr = document.querySelector("#form span.spinner-grow");
-  const ico = document.querySelector("#form svg.bi-search");
-  const input = document.querySelector("#form input[type=text]");
-  const btn = document.querySelector("#form button[type=submit]");
+ShakeSearch.Controller.signalSearchEnded = () => {
+  const [spnr, ico, input, btn] = ShakeSearch.UI.get(
+    "#form span.spinner-grow",
+    "#form svg.bi-search",
+    "#form input[type=text]",
+    "#form button[type=submit]"
+  );
 
   requestAnimationFrame(() => {
     spnr.classList.add("visually-hidden");
@@ -47,41 +66,42 @@ Controller.signalSearchEnded = () => {
     input.removeAttribute("readonly");
     btn.removeAttribute("disabled");
   });
-  State.searching = false;
+
+  ShakeSearch.State.searching = false;
 };
 
-Controller.search = async (evt) => {
+ShakeSearch.Controller.search = async (evt) => {
   evt.preventDefault();
-  if (State.searching) return;
+  if (ShakeSearch.State.searching) return;
 
   const form = evt.target;
   const fData = new FormData(form);
   const query = fData.get("query").trim();
 
   if (!validationPtrn.test(query)) return;
-  if (State.prevQry && State.prevQry == query) return;
+  if (ShakeSearch.State.prevQry && ShakeSearch.State.prevQry == query) return;
 
   let results;
-  State.prevQry = query;
-  Controller.signalSearchStarted();
+  ShakeSearch.State.prevQry = query;
+  ShakeSearch.Controller.signalSearchStarted();
   try {
-    const response = await fetch(`/search?q=${query}`);
+    const response = await fetch(`https://tph-shakesearch.onrender.com/search?q=${query}`);
     results = await response.json();
   } catch (err) {
-    Controller.showSnackBar("Search failed. Pls try again!");
+    ShakeSearch.Controller.showSnackBar("Search failed. Pls try again!");
     console.warn(err.message);
   } finally {
-    Controller.signalSearchEnded();
+    ShakeSearch.Controller.signalSearchEnded();
   }
 
   if (results) {
     // TODO expand on this check if needed
-    Controller.displayResults(results);
+    ShakeSearch.Controller.displayResults(results);
   }
 };
 
 // TODO move away from displaying the results with a table
-Controller.displayResults = (results) => {
+ShakeSearch.Controller.displayResults = (results) => {
   const rows = results.reduce((trs, txt) => {
     const tr = document.createElement("tr");
     // TODO If needed, sanitize txt before displaying it
@@ -102,12 +122,12 @@ Controller.displayResults = (results) => {
   });
 };
 
-const startApp = () => {
-  const form = document.querySelector("#form");
+ShakeSearch.Controller.startApp = () => {
+  const form = ShakeSearch.UI.get("#form");
   if (form) {
-    form.addEventListener("submit", Controller.search);
+    form.addEventListener("submit", ShakeSearch.Controller.search);
     form.querySelector("input[type=text]").focus();
   }
 };
 
-document.addEventListener("DOMContentLoaded", startApp);
+document.addEventListener("DOMContentLoaded", ShakeSearch.Controller.startApp);
