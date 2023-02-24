@@ -2,6 +2,7 @@ const Controller = {};
 const validationPtrn = /^[a-zA-Z]{3,}[ a-zA-Z]+$/;
 
 State = {
+  prevQry: "",
   searching: false,
 };
 
@@ -59,8 +60,10 @@ Controller.search = async (evt) => {
   const query = fData.get("query").trim();
 
   if (!validationPtrn.test(query)) return;
+  if (State.prevQry && State.prevQry == query) return;
 
   let results;
+  State.prevQry = query;
   Controller.signalSearchStarted();
   try {
     const response = await fetch(`/search?q=${query}`);
