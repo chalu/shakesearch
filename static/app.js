@@ -1,6 +1,41 @@
 const Controller = {};
 const validationPtrn = /^[a-zA-Z]{3,}[ a-zA-Z]+$/;
 
+Controller.showSnackBar = (msg) => {
+  const snkBar = document.querySelector("#snackbar");
+  requestAnimationFrame(() => {
+    snkBar.innerText = msg;
+    snkBar.classList.add("show");
+  });
+
+  // Hide snackbar after 3 secs
+  setTimeout(() => {
+    requestAnimationFrame(() => {
+      snkBar.classList.remove("show");
+    });
+  }, 3000);
+};
+
+Controller.signalSearchStarted = () => {
+  const spnr = document.querySelector('#form span.spinner-grow');
+  const ico = document.querySelector('#form svg.bi-search');
+
+  requestAnimationFrame(() => {
+    spnr.classList.remove('visually-hidden');
+    ico.classList.add('visually-hidden');
+  })
+};
+
+Controller.signalSearchEnded = () => {
+  const spnr = document.querySelector('#form span.spinner-grow');
+  const ico = document.querySelector('#form svg.bi-search');
+
+  requestAnimationFrame(() => {
+    spnr.classList.add('visually-hidden');
+    ico.classList.remove('visually-hidden');
+  })
+};
+
 Controller.search = async (evt) => {
   evt.preventDefault();
   const form = evt.target;
@@ -9,17 +44,16 @@ Controller.search = async (evt) => {
 
   if (!validationPtrn.test(query)) return;
 
-  // TODO update UI that search has begun
-
   let results;
+  Controller.signalSearchStarted();
   try {
-    const response = await fetch(`/search?q=${query}`);
+    const response = await fetch(`https://tph-shakesearch.onrender.com/search?q=${query}`);
     results = await response.json();
   } catch (err) {
+    Controller.showSnackBar("Search failed. Pls try again!");
     console.warn(err.message);
-    // TODO inform user
   } finally {
-    // TODO update UI that search has ended
+    Controller.signalSearchEnded();
   }
 
   if (results) {
