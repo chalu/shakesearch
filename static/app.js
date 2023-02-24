@@ -104,12 +104,13 @@ ShakeSearch.UI.task = async (todo, opts = {}) => {
  * @returns Promise
  */
 ShakeSearch.UI.prepareToHintResponseDelay = () => {
-  const tsk = () => ShakeSearch.Controller.showSnackBar("Still busy, pls wait ...");
+  const tsk = () =>
+    ShakeSearch.Controller.showSnackBar("Still busy, pls wait ...");
   const proceedIf = () => ShakeSearch.State.searching === true;
 
   return ShakeSearch.UI.task(tsk, {
-    waitUntil: 1500,
-    okayToProceed: proceedIf
+    waitUntil: 2000,
+    okayToProceed: proceedIf,
   });
 };
 
