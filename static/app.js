@@ -85,7 +85,7 @@ ShakeSearch.Controller.search = async (evt) => {
   ShakeSearch.State.prevQry = query;
   ShakeSearch.Controller.signalSearchStarted();
   try {
-    const response = await fetch(`https://tph-shakesearch.onrender.com/search?q=${query}`);
+    const response = await fetch(`/search?q=${query}`);
     results = await response.json();
   } catch (err) {
     ShakeSearch.Controller.showSnackBar("Search failed. Pls try again!");
