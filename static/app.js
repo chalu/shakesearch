@@ -1,10 +1,9 @@
 const Controller = {};
-const validationPtrn = /^[a-zA-Z]{3,}[ a-zA-Z]+$/;
-
-State = {
+const State = {
   prevQry: "",
   searching: false,
 };
+const validationPtrn = /^[a-zA-Z]{3}[ a-zA-Z]*$/;
 
 Controller.showSnackBar = (msg) => {
   const snkBar = document.querySelector("#snackbar");
