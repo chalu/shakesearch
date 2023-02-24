@@ -1,11 +1,14 @@
 const Controller = {};
+const validationPtrn = /^[a-zA-Z]{3,}[ a-zA-Z]+$/;
 
 Controller.search = async (evt) => {
   evt.preventDefault();
   const form = evt.target;
   const fData = new FormData(form);
-  const query = fData.get("query");
-  // TODO handle validation
+  const query = fData.get("query").trim();
+
+  if (!validationPtrn.test(query)) return;
+
   // TODO update UI that search has begun
 
   let results;
