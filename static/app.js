@@ -47,7 +47,7 @@ Controller.search = async (evt) => {
   let results;
   Controller.signalSearchStarted();
   try {
-    const response = await fetch(`https://tph-shakesearch.onrender.com/search?q=${query}`);
+    const response = await fetch(`/search?q=${query}`);
     results = await response.json();
   } catch (err) {
     Controller.showSnackBar("Search failed. Pls try again!");
