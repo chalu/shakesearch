@@ -3,7 +3,8 @@ info:
   title: The ShakeSearch API
   version: "1.0"
   description: |
-    Some description goes here. Format with markdown
+    Welcome to the Shakesearch API! 
+    It allows clients and integrators to search for a text string across the complete works of Shakespeare.
   contact:
     name: Charles Odili
     email: chaluwa@gmail.com
@@ -13,8 +14,7 @@ servers:
   - url: https://tph-shakesearch.onrender.com
 
 tags:
-  - name: Search
-    description: Query ShakeSearch data
+  - name: Text Search
 
 x-json-schema-faker:
   locale: en
@@ -26,8 +26,11 @@ paths:
   /search:
     get:
       tags:
-        - Search
-      summary: Issue a search on all ShakeSearch's collection
+        - Text Search
+      summary: Issue a text search
+      description: |
+        Query Shakespeare's work for phrases that match a search term. 
+        Search terms are case insensitive, and the results are paginated. The results can also be sorted by the term's occurence order or frequency. 
       operationId: issueQuery
       responses:
         "200":
@@ -128,6 +131,25 @@ paths:
             maximum: 100
             default: 1
           description: What page to start the query/search from, where offset=1 implies to fetch the first page of the matching results
+        - in: query
+          name: orderBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - occurence
+              - frequency
+            default: occurence
+          description: How to order items in the results. Valid values are `position` (i.e how many times the match was seen)
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+            default: ASC
 
 components:
   schemas:
