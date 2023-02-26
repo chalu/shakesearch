@@ -1,0 +1,188 @@
+openapi: "3.0.2"
+info:
+  title: The ShakeSearch API
+  version: "1.0"
+  description: |
+    Welcome to the Shakesearch API! 
+    It allows clients and integrators to search for a text string across the complete works of Shakespeare.
+  contact:
+    name: Charles Odili
+    email: chaluwa@gmail.com
+  license:
+    name: MIT
+servers:
+  - url: https://tph-shakesearch.onrender.com
+
+tags:
+  - name: Text Search
+
+x-json-schema-faker:
+  locale: en
+  min-items: 1
+  max-items: 3
+  resolve-json-path: true
+
+paths:
+  /search:
+    get:
+      tags:
+        - Text Search
+      summary: Issue a text search
+      description: |
+        Query Shakespeare's work for phrases that match a search term. 
+        Search terms are case insensitive, and the results are paginated. The results can also be sorted by the term's occurence order or frequency. 
+      operationId: issueQuery
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - count
+                  - data
+                properties:
+                  count:
+                    type: integer
+                    description: How many total results were found for the search term
+                    minimum: 0
+                  offset:
+                    type: integer
+                    description: The returned result page across the entire matching result-set
+                    minimum: 1
+                    maximum: 100
+                    default: 1
+                  next:
+                    type: string
+                    format: uri
+                    description: URL with the existing query parameters but with the offset parameter set to fetch next page, if any
+                    x-faker: internet.url
+                  previous:
+                    type: string
+                    format: uri
+                    description: URL with the cexisting query parameters but with the offset parameter set to fetch previous page, if any
+                    x-faker: internet.url
+                  data:
+                    type: array
+                    maxItems: 50
+                    minItems: 0
+                    description: Collection of returned matches for the search query
+                    items:
+                      $ref: "#/components/schemas/SearchResult"
+              examples:
+                success:
+                  value:
+                    count: 1
+                    offset: 2
+                    next: "https://tph-shakesearch.onrender.com/search?q=hamlet&offset=3"
+                    previous: "https://tph-shakesearch.onrender.com/search?q=hamlet&offset=1"
+                    data:
+                      - phrase: "Be as ourself in Denmark. Madam, come; This gentle and unforc’d accord of Hamlet. Sits smiling to my heart; in grace whereof"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+              examples:
+                bad-request:
+                  value:
+                    message: Cannot proceed with invalid request
+                    errors:
+                      - Validation failed for request data
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+              examples:
+                server-error:
+                  value:
+                    message: Server error
+                    errors:
+                      - The server was unable to handle your request. Pls try again or contact the administrator
+
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            $ref: "#/components/schemas/SearchQuery"
+          description: The search query/term to issue to the server for matching phrases that contain said query/term
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 25
+          description: How many records (max) to query for, and return in the response
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 1
+          description: What page to start the query/search from, where offset=1 implies to fetch the first page of the matching results
+        - in: query
+          name: orderBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - occurence
+              - frequency
+            default: occurence
+          description: How to order items in the results. Valid values are `position` (i.e how many times the match was seen)
+        - in: query
+          name: sortBy
+          required: false
+          schema:
+            type: string
+            enum:
+              - ASC
+              - DESC
+            default: ASC
+
+components:
+  schemas:
+    SearchQuery:
+      title: SearchQuery
+      type: string
+      minLength: 3
+      pattern: ^[a-zA-Z]{3}[ a-zA-Z]*$
+    SearchResult:
+      title: SearchResult
+      type: object
+      additionalProperties: false
+      properties:
+        phrase:
+          type: string
+          description: The phrase containing the matched term
+          maxLength: 500
+          x-faker: lorem.words
+    ResponseError:
+      title: ResponseError
+      type: object
+      additionalProperties: false
+      properties:
+        message:
+          type: string
+          maxLength: 100
+          x-faker: lorem.words
+        errors:
+          type: array
+          items:
+            type: string
+            maxLength: 75
+            x-faker: lorem.words
+      required:
+        - message
+      description: A server response error
