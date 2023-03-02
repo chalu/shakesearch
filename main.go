@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -46,15 +47,15 @@ type Query struct {
 }
 
 type Searcher struct {
-	CompleteWorks string
-	SuffixArray   *suffixarray.Index
+	data    string
+	indexes *suffixarray.Index
 }
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func parseRequest(w http.ResponseWriter, r *http.Request) Query {
+func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Query {
 	params := r.URL.Query()
 
 	searchQry, ok := params["q"]
@@ -65,7 +66,10 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 
 	// TODO match regex pattern
 	term := strings.Trim(searchQry[0], " ")
-	fmt.Printf("Term: %v\n", term)
+	if !regx.MatchString(term) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid request. Please enter a valid search query"))
+	}
 
 	limit := 25
 	limitQry := params["limit"]
@@ -77,7 +81,6 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 		}
 		limit = lmt
 	}
-	fmt.Printf("Limit: %v\n", limit)
 
 	offset := 1
 	offsetQry := params["offset"]
@@ -89,7 +92,6 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 		}
 		offset = offst
 	}
-	fmt.Printf("Offset: %v\n", offset)
 
 	orderBy := "occurence"
 	orderByQry := params["orderby"]
@@ -101,7 +103,6 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 		}
 		orderBy = odr
 	}
-	fmt.Printf("Order By: %v\n", orderBy)
 
 	sortBy := "DESC"
 	sortByQry := params["sortby"]
@@ -113,7 +114,6 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 		}
 		sortBy = srt
 	}
-	fmt.Printf("Sort By: %v\n", sortBy)
 
 	qParams := Query{
 		sortby:     sortBy,
@@ -127,10 +127,11 @@ func parseRequest(w http.ResponseWriter, r *http.Request) Query {
 }
 
 func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
+	regx := regexp.MustCompile(`^[a-zA-Z]{3}[ a-zA-Z]*$`)
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
 
-		query := parseRequest(w, r)
+		query := parseRequest(w, r, regx)
 		results := searcher.Search(query.searchTerm)
 
 		buf := &bytes.Buffer{}
@@ -154,16 +155,22 @@ func (s *Searcher) Load(filename string) error {
 		return fmt.Errorf("Load: %w", err)
 	}
 
-	s.CompleteWorks = string(data)
-	s.SuffixArray = suffixarray.New(data)
+	s.data = string(data)
 	return nil
 }
 
 func (s *Searcher) Search(query string) []string {
-	idxs := s.SuffixArray.Lookup([]byte(query), -1)
 	results := []string{}
-	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[idx-250:idx+250])
+
+	// TODO investigate https://www.nightfall.ai/blog/best-go-regex-library
+	reg := regexp.MustCompile(fmt.Sprintf(`(?i)%v`, query))
+	matches := reg.FindAllStringIndex(s.data, -1)
+	fmt.Println(len(matches))
+	if matches != nil {
+		for _, pos := range matches {
+			results = append(results, s.data[pos[0]-50:pos[1]+50])
+		}
 	}
+
 	return results
 }
