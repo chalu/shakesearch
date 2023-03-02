@@ -1,14 +1,21 @@
+/*
+Package main implements the search functionality as well as
+receiving and responding to HTTP requests. It tries to adhere to the
+contract in the /api/api-spec.yml OpenAPI spec
+....
+*/
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"index/suffixarray"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -28,60 +35,172 @@ func main() {
 		port = "3001"
 	}
 
-	fmt.Printf("Listening on port %s...", port)
+	fmt.Printf("Listening on port %s...\n", port)
 	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+/* A Query encapsulates all the valid parameters in the HTTP request */
+type Query struct {
+	searchTerm string
+	limit      int32
+	page       int32
+	orderby    string
+	sortby     string
+}
+
+/* A Match represents an entry for every match for the search term */
+type Match struct {
+	Phrase string `json:"phrase"`
+}
+
+/* A Result encapsulates the HTTP response payload */
+type Result struct {
+	Total int32   `json:"total"`
+	Page  int32   `json:"page"`
+	Data  []Match `json:"data"`
+}
+
+/* A data structure for the data to be searched */
 type Searcher struct {
-	CompleteWorks string
-	SuffixArray   *suffixarray.Index
+	data string
 }
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Query {
+	params := r.URL.Query()
+
+	searchQry, ok := params["q"]
+	if !ok || len(searchQry) < 1 {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid request. Missing search query in URL params"))
+	}
+
+	// TODO match regex pattern
+	term := strings.Trim(searchQry[0], " ")
+	if !regx.MatchString(term) {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid request. Please enter a valid search query"))
+	}
+
+	limit := 25
+	limitQry := params["limit"]
+	if len(limitQry) >= 1 {
+		lmt, ok := strconv.Atoi(strings.Trim(limitQry[0], " "))
+		if ok != nil || lmt < 1 || lmt > 500 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid request. The limit param needs to be an int >= 1 and <= 500"))
+		}
+		limit = lmt
+	}
+
+	page := 1
+	pageQry := params["page"]
+	if len(pageQry) >= 1 {
+		pg, ok := strconv.Atoi(strings.Trim(pageQry[0], " "))
+		if ok != nil || pg < 1 || pg > 100 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid request. The page param needs to be an int >= 1 and <= 100"))
+		}
+		page = pg
+	}
+
+	orderBy := "occurence"
+	orderByQry := params["orderby"]
+	if len(orderByQry) >= 1 {
+		odr := strings.ToLower(strings.Trim(orderByQry[0], " "))
+		if odr != "occurence" && odr != "frequency" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid request. You can only order matches by frequency or occurence"))
+		}
+		orderBy = odr
+	}
+
+	sortBy := "DESC"
+	sortByQry := params["sortby"]
+	if len(sortByQry) >= 1 {
+		srt := strings.ToUpper(strings.Trim(sortByQry[0], " "))
+		if srt != "ASC" && srt != "DESC" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid request. You can only sort matches in ascending(ASC) or descending(DESC) order"))
+		}
+		sortBy = srt
+	}
+
+	qParams := Query{
+		sortby:     sortBy,
+		orderby:    orderBy,
+		searchTerm: term,
+		limit:      int32(limit),
+		page:       int32(page),
+	}
+
+	return qParams
+}
+
 func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
+	regx := regexp.MustCompile(`^[a-zA-Z]{3}[ a-zA-Z]*$`)
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
-		query, ok := r.URL.Query()["q"]
-		if !ok || len(query[0]) < 1 {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("missing search query in URL params"))
-			return
-		}
-		results := searcher.Search(query[0])
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
+
+		query := parseRequest(w, r, regx)
+		result := searcher.Search(query)
+
+		jsonResp, err := json.Marshal(result)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("encoding failure"))
+			w.Write([]byte("Error encoding response ..."))
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(buf.Bytes())
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResp)
 	}
 }
 
 func (s *Searcher) Load(filename string) error {
-	dat, err := ioutil.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("Load: %w", err)
 	}
-	s.CompleteWorks = string(dat)
-	s.SuffixArray = suffixarray.New(dat)
+
+	s.data = string(data)
 	return nil
 }
 
-func (s *Searcher) Search(query string) []string {
-	idxs := s.SuffixArray.Lookup([]byte(query), -1)
-	results := []string{}
-	for _, idx := range idxs {
-		results = append(results, s.CompleteWorks[idx-250:idx+250])
+func (s *Searcher) Search(query Query) Result {
+	data := []Match{}
+	term := query.searchTerm
+	limit := query.limit
+	offset := query.page
+
+	start, end := (offset*limit)-limit, (offset * limit)
+
+	// TODO investigate https://www.nightfall.ai/blog/best-go-regex-library
+	reg := regexp.MustCompile(fmt.Sprintf(`(?i)%v`, term))
+	matches := reg.FindAllStringIndex(s.data, -1)
+	count := 0
+	if matches != nil {
+		count = len(matches)
+		for _, pos := range matches {
+			data = append(data, Match{
+				Phrase: s.data[pos[0]-50 : pos[1]+50],
+			})
+		}
+		data = data[start:end]
 	}
-	return results
+
+	result := Result{
+		Total: int32(count),
+		Page:  offset,
+		Data:  data,
+	}
+
+	return result
 }
