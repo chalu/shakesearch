@@ -7,11 +7,12 @@ body {
 body {
   background: #fff url(../background.jpg) bottom right no-repeat;
   background-attachment: fixed;
+  margin-top: 85px;
 }
 
-form.row {
+/* form.row {
   margin-top: 1em;
-}
+} */
 
 /* The snackbar - position it at the bottom and in the middle of the screen
  * cortesy of https://www.w3schools.com/howto/howto_js_snackbar.asp
@@ -97,9 +98,9 @@ form.row {
 
 @media only screen and (max-width: 576px) {
   /* Style adjustments for viewports that meet the condition */
-  form.row button {
+  /* form.row button {
     margin-top: 0.75em;
-  }
+  } */
 
   body {
     background-size: contain;
