@@ -43,26 +43,26 @@ paths:
                   - count
                   - data
                 properties:
-                  count:
+                  total:
                     type: integer
-                    description: How many total results were found for the search term
+                    description: How many results in total were found for the search term
                     minimum: 0
-                  offset:
+                  page:
                     type: integer
                     description: The returned result page across the entire matching result-set
                     minimum: 1
                     maximum: 100
                     default: 1
-                  next:
-                    type: string
-                    format: uri
-                    description: URL with the existing query parameters but with the offset parameter set to fetch next page, if any
-                    x-faker: internet.url
-                  previous:
-                    type: string
-                    format: uri
-                    description: URL with the cexisting query parameters but with the offset parameter set to fetch previous page, if any
-                    x-faker: internet.url
+                  # next:
+                  #   type: string
+                  #   format: uri
+                  #   description: URL with the existing query parameters but with the page parameter set to fetch next page, if any
+                  #   x-faker: internet.url
+                  # previous:
+                  #   type: string
+                  #   format: uri
+                  #   description: URL with the cexisting query parameters but with the page parameter set to fetch previous page, if any
+                  #   x-faker: internet.url
                   data:
                     type: array
                     maxItems: 50
@@ -73,10 +73,10 @@ paths:
               examples:
                 success:
                   value:
-                    count: 1
-                    offset: 2
-                    next: "https://tph-shakesearch.onrender.com/search?q=hamlet&offset=3"
-                    previous: "https://tph-shakesearch.onrender.com/search?q=hamlet&offset=1"
+                    total: 1
+                    page: 2
+                    next: "https://tph-shakesearch.onrender.com/search?q=hamlet&page=3"
+                    previous: "https://tph-shakesearch.onrender.com/search?q=hamlet&page=1"
                     data:
                       - phrase: "Be as ourself in Denmark. Madam, come; This gentle and unforc’d accord of Hamlet. Sits smiling to my heart; in grace whereof"
 
@@ -123,14 +123,14 @@ paths:
             default: 25
           description: How many records (max) to query for, and return in the response
         - in: query
-          name: offset
+          name: page
           required: false
           schema:
             type: integer
             minimum: 1
             maximum: 100
             default: 1
-          description: What page to start the query/search from, where offset=1 implies to fetch the first page of the matching results
+          description: What page to start the query/search from, where page=1 implies to fetch the first page of the matching results
         - in: query
           name: orderBy
           required: false

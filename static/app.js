@@ -42,11 +42,11 @@ ShakeSearch.Controller.search = async (evt) => {
 
 // TODO move away from displaying the results with a table
 ShakeSearch.Controller.displayResults = (results) => {
-  const rows = results.reduce((trs, txt) => {
+  const rows = results.data.reduce((trs, {phrase}) => {
     const tr = document.createElement("tr");
-    // TODO If needed, sanitize txt before displaying it
-    // Dev tools shows it has some special chars (\r\n e.t.c)
-    tr.innerText = txt;
+    const td = document.createElement("td");
+    tr.appendChild(td)
+    td.innerText = phrase.replaceAll(/(\r\n){3,}/g, '\r\n\r\n');
     trs.push(tr);
     return trs;
   }, []);

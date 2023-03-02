@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"index/suffixarray"
@@ -41,9 +40,19 @@ func main() {
 type Query struct {
 	searchTerm string
 	limit      int32
-	offset     int32
+	page       int32
 	orderby    string
 	sortby     string
+}
+
+type Match struct {
+	Phrase string `json:"phrase"`
+}
+
+type Result struct {
+	Total int32   `json:"total"`
+	Page  int32   `json:"page"`
+	Data  []Match `json:"data"`
 }
 
 type Searcher struct {
@@ -82,15 +91,15 @@ func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Q
 		limit = lmt
 	}
 
-	offset := 1
-	offsetQry := params["offset"]
-	if len(offsetQry) >= 1 {
-		offst, ok := strconv.Atoi(strings.Trim(offsetQry[0], " "))
-		if ok != nil || offst < 1 || offst > 100 {
+	page := 1
+	pageQry := params["page"]
+	if len(pageQry) >= 1 {
+		pg, ok := strconv.Atoi(strings.Trim(pageQry[0], " "))
+		if ok != nil || pg < 1 || pg > 100 {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Invalid request. The offset param needs to be an int >= 1 and <= 100"))
+			w.Write([]byte("Invalid request. The page param needs to be an int >= 1 and <= 100"))
 		}
-		offset = offst
+		page = pg
 	}
 
 	orderBy := "occurence"
@@ -120,7 +129,7 @@ func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Q
 		orderby:    orderBy,
 		searchTerm: term,
 		limit:      int32(limit),
-		offset:     int32(offset),
+		page:       int32(page),
 	}
 
 	return qParams
@@ -132,20 +141,18 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 		enableCors(&w)
 
 		query := parseRequest(w, r, regx)
-		results := searcher.Search(query.searchTerm)
+		result := searcher.Search(query)
 
-		buf := &bytes.Buffer{}
-		enc := json.NewEncoder(buf)
-		err := enc.Encode(results)
+		jsonResp, err := json.Marshal(result)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Response encoding failure"))
+			w.Write([]byte("Error encoding response ..."))
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(buf.Bytes())
+		w.Write(jsonResp)
 	}
 }
 
@@ -159,18 +166,33 @@ func (s *Searcher) Load(filename string) error {
 	return nil
 }
 
-func (s *Searcher) Search(query string) []string {
-	results := []string{}
+func (s *Searcher) Search(query Query) Result {
+	data := []Match{}
+	term := query.searchTerm
+	limit := query.limit
+	offset := query.page
+
+	start, end := (offset*limit)-limit, (offset * limit)
 
 	// TODO investigate https://www.nightfall.ai/blog/best-go-regex-library
-	reg := regexp.MustCompile(fmt.Sprintf(`(?i)%v`, query))
+	reg := regexp.MustCompile(fmt.Sprintf(`(?i)%v`, term))
 	matches := reg.FindAllStringIndex(s.data, -1)
-	fmt.Println(len(matches))
+	count := 0
 	if matches != nil {
+		count = len(matches)
 		for _, pos := range matches {
-			results = append(results, s.data[pos[0]-50:pos[1]+50])
+			data = append(data, Match{
+				Phrase: s.data[pos[0]-50 : pos[1]+50],
+			})
 		}
+		data = data[start:end]
 	}
 
-	return results
+	result := Result{
+		Total: int32(count),
+		Page:  offset,
+		Data:  data,
+	}
+
+	return result
 }
