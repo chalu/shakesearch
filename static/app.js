@@ -46,10 +46,15 @@ ShakeSearch.Controller.search = async (evt) => {
 
 ShakeSearch.Controller.displayResults = (results, qry) => {
   const parser = new DOMParser();
+  const qryPtrn = new RegExp(qry, "ig");
 
   const entries = results.data.reduce((nodes, { phrase }) => {
+    const phraseHighlighted = phrase.match(qryPtrn).reduce((marked, q) => {
+      return marked.replace(q, `<mark>${q}</mark>`);
+    }, phrase);
+
     const node = parser.parseFromString(
-      ShakeSearch.UI.resultItemTPL(phrase),
+      ShakeSearch.UI.resultItemTPL(phraseHighlighted),
       "text/html"
     );
     nodes.push(node.body.childNodes[0]);
@@ -226,4 +231,3 @@ ShakeSearch.Controller.startApp = () => {
 };
 
 document.addEventListener("DOMContentLoaded", ShakeSearch.Controller.startApp);
-// let regx = new RegExp(qry, "ig");
