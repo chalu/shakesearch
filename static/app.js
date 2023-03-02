@@ -18,10 +18,15 @@ ShakeSearch.Controller.search = async (evt) => {
   const query = fData.get("query").trim();
 
   if (!validationPtrn.test(query)) return;
-  if (ShakeSearch.State.prevQry && ShakeSearch.State.prevQry == query) return;
+  if (
+    ShakeSearch.State.prevQry &&
+    ShakeSearch.State.prevQry == query.toLocaleLowerCase()
+  ) {
+    return;
+  }
 
   let results;
-  ShakeSearch.State.prevQry = query;
+  ShakeSearch.State.prevQry = query.toLocaleLowerCase();
   ShakeSearch.Controller.signalSearchStarted();
   try {
     ShakeSearch.UI.prepareToHintResponseDelay();
@@ -36,30 +41,43 @@ ShakeSearch.Controller.search = async (evt) => {
 
   if (results) {
     // TODO expand on this check if needed
-    ShakeSearch.Controller.displayResults(results);
+    ShakeSearch.Controller.displayResults(results, query);
   }
 };
 
 // TODO move away from displaying the results with a table
-ShakeSearch.Controller.displayResults = (results) => {
-  const rows = results.data.reduce((trs, { phrase }) => {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    tr.appendChild(td);
-    td.innerText = phrase.replaceAll(/(\r\n){3,}/g, "\r\n\r\n");
-    trs.push(tr);
-    return trs;
+ShakeSearch.Controller.displayResults = (results, qry) => {
+  const parser = new DOMParser();
+  const entries = results.data.reduce((nodes, { phrase }) => {
+    const node = parser.parseFromString(
+      ShakeSearch.UI.resultItemTPL(phrase),
+      "text/html"
+    );
+    nodes.push(node.body.childNodes[0]);
+    return nodes;
   }, []);
 
-  const tBody = document.querySelector("#table-body");
+  const root = document.querySelector("#results");
   requestAnimationFrame(() => {
-    while (tBody.firstChild) {
-      tBody.removeChild(tBody.firstChild);
+    while (root.firstChild) {
+      root.removeChild(root.firstChild);
     }
     requestAnimationFrame(() => {
-      tBody.append(...rows);
+      root.append(...entries);
     });
   });
+};
+
+ShakeSearch.UI.resultItemTPL = (phrase) => {
+  return `
+  <div class="col">
+    <div class="card text-bg-secondary mb-3">
+      <div class="card-body">
+        <p class="card-text">...${phrase}...</p>
+      </div>
+    </div>
+  </div>
+  `;
 };
 
 ShakeSearch.UI.get = (...selectors) => {
