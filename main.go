@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -58,9 +59,10 @@ type Match struct {
 
 /* A Result encapsulates the HTTP response payload */
 type Result struct {
-	Total int32   `json:"total"`
-	Page  int32   `json:"page"`
-	Data  []Match `json:"data"`
+	Total    int32   `json:"total"`
+	Page     int32   `json:"page"`
+	Data     []Match `json:"data"`
+	Duration int64   `json:"duration"`
 }
 
 /* A data structure for the data to be searched */
@@ -175,6 +177,8 @@ func (s *Searcher) Load(filename string) error {
 }
 
 func (s *Searcher) Search(query Query) Result {
+	starTime := time.Now()
+
 	data := []Match{}
 	term := query.searchTerm
 	limit := query.limit
@@ -196,10 +200,12 @@ func (s *Searcher) Search(query Query) Result {
 		data = data[start:end]
 	}
 
+	elapsed := time.Since(starTime)
 	result := Result{
-		Total: int32(count),
-		Page:  offset,
-		Data:  data,
+		Total:    int32(count),
+		Page:     offset,
+		Data:     data,
+		Duration: int64(elapsed.Milliseconds()),
 	}
 
 	return result

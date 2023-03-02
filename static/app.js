@@ -39,15 +39,14 @@ ShakeSearch.Controller.search = async (evt) => {
     ShakeSearch.Controller.signalSearchEnded();
   }
 
-  if (results) {
-    // TODO expand on this check if needed
+  if (results && results.data) {
     ShakeSearch.Controller.displayResults(results, query);
   }
 };
 
-// TODO move away from displaying the results with a table
 ShakeSearch.Controller.displayResults = (results, qry) => {
   const parser = new DOMParser();
+
   const entries = results.data.reduce((nodes, { phrase }) => {
     const node = parser.parseFromString(
       ShakeSearch.UI.resultItemTPL(phrase),
@@ -58,12 +57,28 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
   }, []);
 
   const root = document.querySelector("#results");
+  const statusInfo = document.querySelector("#status");
   requestAnimationFrame(() => {
     while (root.firstChild) {
       root.removeChild(root.firstChild);
     }
+    while (statusInfo.firstChild) {
+      statusInfo.removeChild(statusInfo.firstChild);
+    }
+
     requestAnimationFrame(() => {
       root.append(...entries);
+
+      const node = parser.parseFromString(
+        ShakeSearch.UI.resultStatsTPL(
+          results.total,
+          results.data.length,
+          results.duration
+        ),
+        "text/html"
+      );
+      statusInfo.appendChild(node.body.childNodes[0]);
+      statusInfo.classList.remove("visually-hidden");
     });
   });
 };
@@ -76,6 +91,26 @@ ShakeSearch.UI.resultItemTPL = (phrase) => {
         <p class="card-text">...${phrase}...</p>
       </div>
     </div>
+  </div>
+  `;
+};
+
+ShakeSearch.UI.resultStatsTPL = (totalFound, resultSize, duration = 500) => {
+  let timeCue = "text-bg-dark";
+  if (duration >= 2000) {
+    timeCue = "text-bg-danger";
+  }
+
+  if (duration >= 1500) {
+    timeCue = "text-bg-warning";
+  }
+  const elapsed = parseFloat(duration / 1000).toFixed(2);
+  return `
+  <div>
+    <span class="badge ${timeCue}">${elapsed} seconds</span>
+    <br />
+    Showing <span class="badge text-bg-success">${resultSize}</span> 
+    out of <span class="badge text-bg-success">${totalFound}</span> matches
   </div>
   `;
 };
@@ -191,3 +226,4 @@ ShakeSearch.Controller.startApp = () => {
 };
 
 document.addEventListener("DOMContentLoaded", ShakeSearch.Controller.startApp);
+// let regx = new RegExp(qry, "ig");
