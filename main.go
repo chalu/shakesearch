@@ -1,3 +1,9 @@
+/*
+Package main implements the search functionality as well as
+receiving and responding to HTTP requests. It tries to adhere to the
+contract in the /api/api-spec.yml OpenAPI spec
+....
+*/
 package main
 
 import (
