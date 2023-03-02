@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"index/suffixarray"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,6 +36,7 @@ func main() {
 	}
 }
 
+/* A Query encapsulates all the valid parameters in the HTTP request */
 type Query struct {
 	searchTerm string
 	limit      int32
@@ -45,19 +45,21 @@ type Query struct {
 	sortby     string
 }
 
+/* A Match represents an entry for every match for the search term */
 type Match struct {
 	Phrase string `json:"phrase"`
 }
 
+/* A Result encapsulates the HTTP response payload */
 type Result struct {
 	Total int32   `json:"total"`
 	Page  int32   `json:"page"`
 	Data  []Match `json:"data"`
 }
 
+/* A data structure for the data to be searched */
 type Searcher struct {
-	data    string
-	indexes *suffixarray.Index
+	data string
 }
 
 func enableCors(w *http.ResponseWriter) {
