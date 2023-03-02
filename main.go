@@ -57,7 +57,7 @@ type Result struct {
 	Data  []Match `json:"data"`
 }
 
-/* A data structure for the data to be searched */
+/* A data-structure for the data to be searched */
 type Searcher struct {
 	data string
 }
