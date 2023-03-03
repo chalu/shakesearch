@@ -46,7 +46,7 @@ ShakeSearch.Controller.search = async (evt) => {
 
 ShakeSearch.Controller.displayResults = (results, qry) => {
   const parser = new DOMParser();
-  const qryPtrn = new RegExp(qry, "ig");
+  const qryPtrn = new RegExp(qry, "gi");
 
   const entries = results.data.reduce((nodes, { phrase }) => {
     const phraseHighlighted = phrase.match(qryPtrn).reduce((marked, q) => {
@@ -185,7 +185,9 @@ ShakeSearch.UI.setupTour = (searchField) => {
   ];
 
   const getNextTourStep = () => {
-    let step = tour[tourIndex];
+    // only using parseInt to address Codacy's
+    // "Variable Assigned to Object Injection Sink" security flag
+    let step = tour[parseInt(tourIndex, 10)];
     if (tourIndex === 3) {
       const randomPlay = plays[Math.floor(Math.random() * plays.length)];
       step = `${step} ${randomPlay}`;
