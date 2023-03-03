@@ -5,6 +5,7 @@ info:
   description: |
     Welcome to the Shakesearch API! 
     It allows clients and integrators to search for a text string across the complete works of Shakespeare.
+    See [this sample app](https://tph-shakesearch.onrender.com) for an implementation of this API
   contact:
     name: Charles Odili
     email: chaluwa@gmail.com
@@ -136,25 +137,25 @@ paths:
             maximum: 100
             default: 1
           description: What page to start the query/search from, where page=1 implies to fetch the first page of the matching results
-        - in: query
-          name: orderBy
-          required: false
-          schema:
-            type: string
-            enum:
-              - occurence
-              - frequency
-            default: occurence
-          description: How to order items in the results. Valid values are `position` (i.e how many times the match was seen)
-        - in: query
-          name: sortBy
-          required: false
-          schema:
-            type: string
-            enum:
-              - ASC
-              - DESC
-            default: ASC
+        # - in: query
+        #   name: orderBy
+        #   required: false
+        #   schema:
+        #     type: string
+        #     enum:
+        #       - occurence
+        #       - frequency
+        #     default: occurence
+        #   description: How to order items in the results. Valid values are `frequency` (i.e how many times the match was seen)
+        # - in: query
+        #   name: sortBy
+        #   required: false
+        #   schema:
+        #     type: string
+        #     enum:
+        #       - ASC
+        #       - DESC
+        #     default: ASC
 
 components:
   schemas:
