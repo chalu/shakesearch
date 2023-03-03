@@ -10,6 +10,19 @@ body {
   margin-top: 85px;
 }
 
+#query::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #333;
+  opacity: 1; /* Firefox */
+}
+
+#query:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #333;
+}
+
+#query::-ms-input-placeholder { /* Microsoft Edge */
+  color: #333;
+}
+
 /* form.row {
   margin-top: 1em;
 } */

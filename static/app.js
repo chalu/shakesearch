@@ -33,7 +33,7 @@ ShakeSearch.Controller.search = async (evt) => {
     const response = await fetch(`/search?q=${query}`);
     results = await response.json();
   } catch (err) {
-    ShakeSearch.Controller.showSnackBar("Search failed. Pls try again!");
+    ShakeSearch.UI.showSnackBar("Search failed. Pls try again!");
     console.warn(err.message);
   } finally {
     ShakeSearch.Controller.signalSearchEnded();
@@ -91,7 +91,7 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
 ShakeSearch.UI.resultItemTPL = (phrase) => {
   return `
   <div class="col">
-    <div class="card text-bg-secondary mb-3">
+    <div class="card border-dark mb-3">
       <div class="card-body">
         <p class="card-text">...${phrase}...</p>
       </div>
@@ -162,8 +162,7 @@ ShakeSearch.UI.task = async (todo, opts = {}) => {
  * @returns Promise
  */
 ShakeSearch.UI.prepareToHintResponseDelay = () => {
-  const tsk = () =>
-    ShakeSearch.Controller.showSnackBar("Still busy, pls wait ...");
+  const tsk = () => ShakeSearch.UI.showSnackBar("Still busy, pls wait ...");
   const proceedIf = () => ShakeSearch.State.searching === true;
 
   return ShakeSearch.UI.task(tsk, {
@@ -172,7 +171,49 @@ ShakeSearch.UI.prepareToHintResponseDelay = () => {
   });
 };
 
-ShakeSearch.Controller.showSnackBar = (msg, dismissAfter = 3000) => {
+ShakeSearch.UI.setupTour = (searchField) => {
+  let tourId;
+  let tourIndex = 0;
+  const plays = ["Hamlet", "Macbeth", "Othelo", "Lear", "Romeo"];
+  const tour = [
+    "",
+    "search all of Shakespeare",
+    "make your move ...",
+    "type ",
+    "so much is possible",
+    "",
+  ];
+
+  const getNextTourStep = () => {
+    let step = tour[tourIndex];
+    if (tourIndex === 3) {
+      const randomPlay = plays[Math.floor(Math.random() * plays.length)];
+      step = `${step} ${randomPlay}`;
+    }
+    tourIndex = (tourIndex + 1) % tour.length;
+    return step;
+  };
+
+  const endTourOnClick = () => {
+    if (tourId) {
+      tourIndex = 0;
+      requestAnimationFrame(() => {
+        searchField.setAttribute("placeholder", "");
+      });
+      clearInterval(tourId);
+    }
+  };
+  searchField.addEventListener("click", endTourOnClick);
+
+  tourId = setInterval(() => {
+    requestAnimationFrame(() => {
+      const step = getNextTourStep();
+      searchField.setAttribute("placeholder", `${step}`);
+    });
+  }, 2500);
+};
+
+ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   const snkBar = ShakeSearch.UI.get("#snackbar");
   requestAnimationFrame(() => {
     snkBar.innerText = msg;
@@ -224,10 +265,21 @@ ShakeSearch.Controller.signalSearchEnded = () => {
 
 ShakeSearch.Controller.startApp = () => {
   const form = ShakeSearch.UI.get("#form");
-  if (form) {
-    form.addEventListener("submit", ShakeSearch.Controller.search);
-    form.querySelector("input[type=text]").focus();
+  if (!form) return;
+
+  form.addEventListener("submit", ShakeSearch.Controller.search);
+  const searchField = form.querySelector("input[type=text]");
+  searchField.focus();
+
+  const urlParams = new URL(document.location).searchParams;
+  if (urlParams && (urlParams.get("q") || urlParams.get("query"))) {
+    const query = (urlParams.get("q") || urlParams.get("query")).trim();
+    searchField.value = query;
+    form.querySelector("button").click();
+    return;
   }
+
+  ShakeSearch.UI.setupTour(searchField);
 };
 
 document.addEventListener("DOMContentLoaded", ShakeSearch.Controller.startApp);
