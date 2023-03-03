@@ -18,48 +18,109 @@ ShakeSearch.Controller.search = async (evt) => {
   const query = fData.get("query").trim();
 
   if (!validationPtrn.test(query)) return;
-  if (ShakeSearch.State.prevQry && ShakeSearch.State.prevQry == query) return;
+  if (
+    ShakeSearch.State.prevQry &&
+    ShakeSearch.State.prevQry == query.toLocaleLowerCase()
+  ) {
+    return;
+  }
 
   let results;
-  ShakeSearch.State.prevQry = query;
+  ShakeSearch.State.prevQry = query.toLocaleLowerCase();
   ShakeSearch.Controller.signalSearchStarted();
   try {
     ShakeSearch.UI.prepareToHintResponseDelay();
     const response = await fetch(`/search?q=${query}`);
     results = await response.json();
   } catch (err) {
-    ShakeSearch.Controller.showSnackBar("Search failed. Pls try again!");
+    ShakeSearch.UI.showSnackBar("Search failed. Pls try again!");
     console.warn(err.message);
   } finally {
     ShakeSearch.Controller.signalSearchEnded();
   }
 
-  if (results) {
-    // TODO expand on this check if needed
-    ShakeSearch.Controller.displayResults(results);
+  if (results && results.data) {
+    ShakeSearch.Controller.displayResults(results, query);
   }
 };
 
-// TODO move away from displaying the results with a table
-ShakeSearch.Controller.displayResults = (results) => {
-  const rows = results.data.reduce((trs, { phrase }) => {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    tr.appendChild(td);
-    td.innerText = phrase.replaceAll(/(\r\n){3,}/g, "\r\n\r\n");
-    trs.push(tr);
-    return trs;
+ShakeSearch.Controller.displayResults = (results, qry) => {
+  const parser = new DOMParser();
+  const RE = RegExp;
+  // Using reassigned constructor to address
+  // Codacy's "Detect non literal regexp" flag
+  const qryPtrn = new RE(qry, "gi");
+
+  const entries = results.data.reduce((nodes, { phrase }) => {
+    const phraseHighlighted = phrase.match(qryPtrn).reduce((marked, q) => {
+      return marked.replace(q, `<mark>${q}</mark>`);
+    }, phrase);
+
+    const node = parser.parseFromString(
+      ShakeSearch.UI.resultItemTPL(phraseHighlighted),
+      "text/html"
+    );
+    nodes.push(node.body.childNodes[0]);
+    return nodes;
   }, []);
 
-  const tBody = document.querySelector("#table-body");
+  const root = document.querySelector("#results");
+  const statusInfo = document.querySelector("#status");
   requestAnimationFrame(() => {
-    while (tBody.firstChild) {
-      tBody.removeChild(tBody.firstChild);
+    while (root.firstChild) {
+      root.removeChild(root.firstChild);
     }
+    while (statusInfo.firstChild) {
+      statusInfo.removeChild(statusInfo.firstChild);
+    }
+
     requestAnimationFrame(() => {
-      tBody.append(...rows);
+      root.append(...entries);
+
+      const node = parser.parseFromString(
+        ShakeSearch.UI.resultStatsTPL(
+          results.total,
+          results.data.length,
+          results.duration
+        ),
+        "text/html"
+      );
+      statusInfo.appendChild(node.body.childNodes[0]);
+      statusInfo.classList.remove("visually-hidden");
     });
   });
+};
+
+ShakeSearch.UI.resultItemTPL = (phrase) => {
+  return `
+  <div class="col">
+    <div class="card border-dark mb-3">
+      <div class="card-body">
+        <p class="card-text">...${phrase}...</p>
+      </div>
+    </div>
+  </div>
+  `;
+};
+
+ShakeSearch.UI.resultStatsTPL = (totalFound, resultSize, duration = 500) => {
+  let timeCue = "text-bg-dark";
+  if (duration >= 2000) {
+    timeCue = "text-bg-danger";
+  }
+
+  if (duration >= 1500) {
+    timeCue = "text-bg-warning";
+  }
+  const elapsed = parseFloat(duration / 1000).toFixed(2);
+  return `
+  <div>
+    <span class="badge ${timeCue}">${elapsed} seconds</span>
+    <br />
+    Showing <span class="badge text-bg-success">${resultSize}</span> 
+    out of <span class="badge text-bg-success">${totalFound}</span> matches
+  </div>
+  `;
 };
 
 ShakeSearch.UI.get = (...selectors) => {
@@ -104,8 +165,7 @@ ShakeSearch.UI.task = async (todo, opts = {}) => {
  * @returns Promise
  */
 ShakeSearch.UI.prepareToHintResponseDelay = () => {
-  const tsk = () =>
-    ShakeSearch.Controller.showSnackBar("Still busy, pls wait ...");
+  const tsk = () => ShakeSearch.UI.showSnackBar("Still busy, pls wait ...");
   const proceedIf = () => ShakeSearch.State.searching === true;
 
   return ShakeSearch.UI.task(tsk, {
@@ -114,7 +174,51 @@ ShakeSearch.UI.prepareToHintResponseDelay = () => {
   });
 };
 
-ShakeSearch.Controller.showSnackBar = (msg, dismissAfter = 3000) => {
+ShakeSearch.UI.setupTour = (searchField) => {
+  let tourId;
+  let tourIndex = 0;
+  const plays = ["Hamlet", "Macbeth", "Othelo", "Lear", "Romeo"];
+  const tour = [
+    "",
+    "search all of Shakespeare",
+    "make your move ...",
+    "type ",
+    "so much is possible",
+    "",
+  ];
+
+  const getNextTourStep = () => {
+    // only using parseInt to address Codacy's
+    // "Variable Assigned to Object Injection Sink" security flag
+    let step = tour[parseInt(tourIndex, 10)];
+    if (tourIndex === 3) {
+      const randomPlay = plays[Math.floor(Math.random() * plays.length)];
+      step = `${step} ${randomPlay}`;
+    }
+    tourIndex = (tourIndex + 1) % tour.length;
+    return step;
+  };
+
+  const endTourOnClick = () => {
+    if (tourId) {
+      tourIndex = 0;
+      requestAnimationFrame(() => {
+        searchField.setAttribute("placeholder", "");
+      });
+      clearInterval(tourId);
+    }
+  };
+  searchField.addEventListener("click", endTourOnClick);
+
+  tourId = setInterval(() => {
+    requestAnimationFrame(() => {
+      const step = getNextTourStep();
+      searchField.setAttribute("placeholder", `${step}`);
+    });
+  }, 2500);
+};
+
+ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   const snkBar = ShakeSearch.UI.get("#snackbar");
   requestAnimationFrame(() => {
     snkBar.innerText = msg;
@@ -166,10 +270,21 @@ ShakeSearch.Controller.signalSearchEnded = () => {
 
 ShakeSearch.Controller.startApp = () => {
   const form = ShakeSearch.UI.get("#form");
-  if (form) {
-    form.addEventListener("submit", ShakeSearch.Controller.search);
-    form.querySelector("input[type=text]").focus();
+  if (!form) return;
+
+  form.addEventListener("submit", ShakeSearch.Controller.search);
+  const searchField = form.querySelector("input[type=text]");
+  searchField.focus();
+
+  const urlParams = new URL(document.location).searchParams;
+  if (urlParams && (urlParams.get("q") || urlParams.get("query"))) {
+    const query = (urlParams.get("q") || urlParams.get("query")).trim();
+    searchField.value = query;
+    form.querySelector("button").click();
+    return;
   }
+
+  ShakeSearch.UI.setupTour(searchField);
 };
 
 document.addEventListener("DOMContentLoaded", ShakeSearch.Controller.startApp);

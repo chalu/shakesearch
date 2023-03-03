@@ -25,57 +25,63 @@
     <link rel="stylesheet" href="styles/app.css" />
   </head>
   <body>
+    <nav class="navbar fixed-top bg-body-tertiary bg-dark" data-bs-theme="dark">
+      <div class="container-fluid">
+        <form id="form" class="d-flex">
+          <!-- <div class="col-md-9 col-sm-7"> -->
+          <input
+            type="text"
+            id="query"
+            name="query"
+            minlength="3"
+            pattern="^[a-zA-Z]{3}[ a-zA-Z]*$"
+            title="words of 3+ characters, separated by space"
+            aria-label="Enter search term"
+            class="form-control me-2"
+          />
+          <!-- </div>
+          <div class="col-md-3 col-sm-5"> -->
+          <button type="submit" class="btn btn-success">
+            <span
+              class="spinner-grow spinner-grow-sm visually-hidden"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-search"
+              viewBox="0 0 16 16"
+            >
+              <path
+                d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
+              />
+            </svg>
+          </button>
+          <!-- </div> -->
+        </form>
+        <!-- <span class="navbar-brand mb-0 h3">ShakeSearch</span> -->
+      </div>
+    </nav>
     <div class="container-fluid px-4">
       <div class="row gx-5">
         <div class="col-md-8">
           <div class="row gy-5">
             <section>
-              <form id="form" class="row">
-                <!-- <label for="query">Query</label> -->
-                <div class="col-md-9 col-sm-7">
-                  <input
-                    type="text"
-                    id="query"
-                    name="query"
-                    placeholder="try hamlet ..."
-                    minlength="3"
-                    pattern="^[a-zA-Z]{3}[ a-zA-Z]*$"
-                    title="words of 3+ characters, separated by space"
-                    aria-label="Enter search term"
-                    class="form-control"
-                  />
-                </div>
-                <div class="col-md-3 col-sm-5">
-                  <button type="submit" class="btn btn-outline-primary">
-                    <span
-                      class="spinner-grow spinner-grow-sm visually-hidden"
-                      role="status"
-                      aria-hidden="true"
-                    ></span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                      class="bi bi-search"
-                      viewBox="0 0 16 16"
-                    >
-                      <path
-                        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"
-                      />
-                    </svg>
-                    Search
-                  </button>
-                </div>
-              </form>
+              <h3>ShakeSearch</h3>
+              <div
+                id="status"
+                class="alert alert-light visually-hidden"
+                role="alert"
+              ></div>
             </section>
             <section class="col gy-10">
-              <table id="table">
-                <tbody id="table-body"></tbody>
-              </table>
+              <div id="results" class="row row-cols-1 row-cols-md-3 g-4"></div>
             </section>
           </div>
-          <div id="snackbar">Some text some message..</div>
+          <div id="snackbar"></div>
         </div>
         <div class="col-md-4"></div>
       </div>

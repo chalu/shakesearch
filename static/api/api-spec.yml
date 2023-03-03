@@ -42,6 +42,7 @@ paths:
                 required:
                   - count
                   - data
+                  - duration
                 properties:
                   total:
                     type: integer
@@ -53,6 +54,10 @@ paths:
                     minimum: 1
                     maximum: 100
                     default: 1
+                  duration:
+                    type: integer
+                    description: Some sense of how long the search took
+                    minimum: 0
                   # next:
                   #   type: string
                   #   format: uri
