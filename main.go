@@ -194,7 +194,7 @@ func (s *Searcher) Search(query Query) Result {
 		count = len(matches)
 		for _, pos := range matches {
 			data = append(data, Match{
-				Phrase: s.data[pos[0]-85 : pos[1]+85],
+				Phrase: s.data[pos[0]-150 : pos[1]+150],
 			})
 		}
 		data = data[start:end]
