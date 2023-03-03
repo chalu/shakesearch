@@ -27,7 +27,7 @@ ShakeSearch.Controller.search = async (evt) => {
 
   let results;
   ShakeSearch.State.prevQry = query.toLocaleLowerCase();
-  ShakeSearch.Controller.signalSearchStarted();
+  ShakeSearch.UI.signalSearchStarted();
   try {
     ShakeSearch.UI.prepareToHintResponseDelay();
     const response = await fetch(`/search?q=${query}`);
@@ -36,7 +36,7 @@ ShakeSearch.Controller.search = async (evt) => {
     ShakeSearch.UI.showSnackBar("Search failed. Pls try again!");
     console.warn(err.message);
   } finally {
-    ShakeSearch.Controller.signalSearchEnded();
+    ShakeSearch.UI.signalSearchEnded();
   }
 
   if (results && results.data) {
@@ -232,7 +232,7 @@ ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   }, dismissAfter);
 };
 
-ShakeSearch.Controller.signalSearchStarted = () => {
+ShakeSearch.UI.signalSearchStarted = () => {
   const [spnr, ico, input, btn] = ShakeSearch.UI.get(
     "#form span.spinner-grow",
     "#form svg.bi-search",
@@ -250,7 +250,7 @@ ShakeSearch.Controller.signalSearchStarted = () => {
   ShakeSearch.State.searching = true;
 };
 
-ShakeSearch.Controller.signalSearchEnded = () => {
+ShakeSearch.UI.signalSearchEnded = () => {
   const [spnr, ico, input, btn] = ShakeSearch.UI.get(
     "#form span.spinner-grow",
     "#form svg.bi-search",
