@@ -17,7 +17,7 @@ Think about the problem from the **user's perspective** and prioritize changes a
 
 ## Submission
 
-> :rocket: Live app : https://github.com/chalu/shakesearch
+> :rocket: Live app : https://tph-shakesearch.onrender.com/
 
 ---
 
@@ -32,22 +32,23 @@ Think about the problem from the **user's perspective** and prioritize changes a
 :fire: :fire: :fire:
 
 1.  Designed [an API](https://tph-shakesearch.onrender.com/api/) as the contract between clients and the server implementation
-2.  Enhanced UI/UX. Responsive design with best practices for [web](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F&form_factor=desktop) and [mobile](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F)
-3.  Support case-insensitive search
-4.  Highlight occurences of search term within each result text
-5.  App can be loaded with a search term in the URL which will automatically get searched for. E.g `https://tph-shakesearch.onrender.com/?q=Hamlet` will load the static web app and automatically issue a search for `Hamlet`. With this, users can create bookmarks of searches or send such URLs to friends
-6.  Validate search queries both on client and backend
-7.  Support pagination (no UI yet) and prevent sending hundreds/thousands of results at once, when user might likely only see/consume a few
-8.  Prevent unecessary trips to backend by not issuing a search of the query is the same as what was last searched
+2.  Enhanced the UI/UX. Applied responsive design with best practices for [web](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F&form_factor=desktop) and [mobile](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F)
+3.  Support for case-insensitive search
+4.  Support highlighting the occurences of the search term within each displayed result
+5.  Ability to load the app with a search term in the URL and automatically execute the search. E.g `https://tph-shakesearch.onrender.com/?q=Hamlet` will load the app and issue a search for `Hamlet`. Users can now create bookmarks of searches or send search URLs to friends
+6.  Validate search queries both on client and backend. How helpful is it to seach for two letter words?
+7.  Support pagination (no UI yet) and prevent sending hundreds (potentially thousands) of results at once, when user might likely only see/consume a few
+8.  Prevent unecessary trips to backend by **not** issuing a search if the query is the same as what was last searched
 9.  Enable CORS on server to enable API integrators (from other domains) search via API
 10. Lots of code refator and enhancements across frontend and backend. See how [quality progressed over time](https://app.codacy.com/gh/chalu/shakesearch/dashboard?branch=dev) and see code quality status badge at top of this repo
 
-### If I Had More Time
+### If I Had More Time ...
 
 :muscle: :muscle: :muscle:
 
 1.  Support multi-word search
 2.  Support search with mis-spelt words
-3.  Add pagination UI so that user can navigate across all the results. Add next & previous links in response payload so that integrators/clients don't have to construct them
-4.  Support results `ordering` and `sorting` by specified enums
+3.  Add pagination UI so that user can navigate across all the results. Add `next` and `previous` links in response payload so that integrators/clients don't have to construct them
+4.  Support results `ordering` and `sorting` by specified enums. E.g order the results by the frequency of the search term
 5.  Perform search as fewer times as possible. Cache results for subsequent requests
+6.  Search with voice
