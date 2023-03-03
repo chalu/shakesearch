@@ -23,6 +23,8 @@ Think about the problem from the **user's perspective** and prioritize changes a
 > * [Prioritization](https://github.com/users/chalu/projects/1/views/3)
 > * [Execution](https://github.com/users/chalu/projects/1/views/2)
 
+![ShakeSearch](./app-on-desktop.png "ShakeSearch")
+
 ### Changes Implemented
 
 ### If I Had More Time 
