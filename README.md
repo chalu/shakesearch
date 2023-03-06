@@ -19,7 +19,7 @@ Think about the problem from the **user's perspective** and prioritize changes a
 
 > :rocket: Live app (turned in Mar 4th like I promised) : https://tph-shakesearch.onrender.com/
 ---
-> Most recent changes (if considered) are in the [tph-last-mile branch](https://github.com/chalu/shakesearch/tree/tph-last-mile) which got deployed as a [PR/preview deploy here](https://tph-shakesearch-pr-39.onrender.com)
+> Most recent updates (if considered) are in the [tph-last-mile branch](https://github.com/chalu/shakesearch/tree/tph-last-mile) which got deployed as a [PR/preview deploy here](https://tph-shakesearch-pr-39.onrender.com)
 
 ---
 
