@@ -285,6 +285,7 @@ ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   }, dismissAfter);
 };
 
+
 /**
  * Use a visual cue to hint the user that their search has been initiated
  * and the request sent to the backend
