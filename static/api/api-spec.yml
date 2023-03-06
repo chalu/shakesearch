@@ -41,7 +41,7 @@ paths:
               schema:
                 type: object
                 required:
-                  - count
+                  - total
                   - data
                   - duration
                 properties:
