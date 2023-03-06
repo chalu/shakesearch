@@ -55,8 +55,8 @@ ShakeSearch.Controller.search = async (evt) => {
 
 /**
  * Parses, formats and displays the search results from the server
- * @param {*} results metadata response payload for the search
- * @param {*} qry The term the user searched for
+ * @param {object} results metadata response payload for the search
+ * @param {string} qry The term the user searched for
  */
 ShakeSearch.Controller.displayResults = (results, qry) => {
   const parser = new DOMParser();
@@ -107,7 +107,6 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
     });
   });
 };
-
 
 /**
  * Build the HTML markup for each result from the server
@@ -173,8 +172,8 @@ ShakeSearch.UI.get = (...selectors) => {
 /**
  * A UI activity to carry out, but only if opts.okayToProceed()
  * evaluates to true and after opts.waitUntil has ellapsed
- * @param {*} todo 
- * @param {*} opts 
+ * @param {Functiont} todo 
+ * @param {object} opts 
  * @returns Promise of the delayed/conditioned activity
  */
 ShakeSearch.UI.task = async (todo, opts = {}) => {
