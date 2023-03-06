@@ -52,9 +52,12 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
   const qryPtrn = new RE(qry, "gi");
 
   const entries = results.data.reduce((nodes, { phrase }) => {
-    const phraseHighlighted = phrase.match(qryPtrn).reduce((marked, q) => {
-      return marked.replace(q, `<mark>${q}</mark>`);
-    }, phrase);
+    const phraseHighlighted = phrase
+      .trim()
+      .match(qryPtrn)
+      .reduce((marked, q) => {
+        return marked.replace(q, `<mark>${q}</mark>`);
+      }, phrase);
 
     const node = parser.parseFromString(
       ShakeSearch.UI.resultItemTPL(phraseHighlighted),
@@ -96,7 +99,9 @@ ShakeSearch.UI.resultItemTPL = (phrase) => {
   <div class="col">
     <div class="card border-dark mb-3">
       <div class="card-body">
-        <p class="card-text">...${phrase}...</p>
+        <pre class="card-text">
+          ${phrase}
+        </pre>
       </div>
     </div>
   </div>
