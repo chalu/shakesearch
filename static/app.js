@@ -172,8 +172,8 @@ ShakeSearch.UI.get = (...selectors) => {
 /**
  * A UI activity to carry out, but only if opts.okayToProceed()
  * evaluates to true and after opts.waitUntil has ellapsed
- * @param {Functiont} todo 
- * @param {object} opts 
+ * @param {Functiont} todo
+ * @param {object} opts
  * @returns Promise of the delayed/conditioned activity
  */
 ShakeSearch.UI.task = async (todo, opts = {}) => {
@@ -284,7 +284,6 @@ ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
     });
   }, dismissAfter);
 };
-
 
 /**
  * Use a visual cue to hint the user that their search has been initiated
