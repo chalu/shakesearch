@@ -51,6 +51,7 @@ Think about the problem from the **user's perspective** and prioritize changes a
 1.  Support multi-word search
 2.  Support search with mis-spelt words
 3.  Add pagination UI so that user can navigate across all the results. Add `next` and `previous` links in response payload so that integrators/clients don't have to construct them
-4.  Support results `ordering` and `sorting` by specified enums. E.g order the results by the frequency of the search term
-5.  Perform search as fewer times as possible. Cache results for subsequent requests
-6.  Search with voice
+4.  Benchmark and address performance bottlenecks/current approach e.g around using dynamic RegEx to find matches within a huge body of text
+5.  Support results `ordering` and `sorting` by specified enums. E.g order the results by the frequency of the search term
+6.  Perform search as fewer times as possible. Cache results for subsequent requests
+7.  Search with voice

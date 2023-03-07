@@ -160,11 +160,12 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 	regx := regexp.MustCompile(`^[a-zA-Z]{3}[ a-zA-Z]*$`)
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
+		timeFmt := "2006.01.02 15:04:05"
 
 		query := parseRequest(w, r, regx)
-		fmt.Printf("%v\tHandling search for %v\n", time.Now().Format("2006.01.02 15:04:05"), query.searchTerm)
+		fmt.Printf("%v\tHandling search for %v\n", time.Now().Format(timeFmt), query.searchTerm)
 		result := searcher.Search(query)
-		fmt.Printf("%v\tResults are in. Found %v in %v ms\n", time.Now().Format("2006.01.02 15:04:05"), result.Total, result.Duration)
+		fmt.Printf("%v\tResults are in. Found %v in %v ms\n", time.Now().Format(timeFmt), result.Total, result.Duration)
 
 		jsonResp, err := json.Marshal(result)
 		if err != nil {
