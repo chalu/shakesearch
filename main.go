@@ -26,6 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// TODO cache these static assets
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 
@@ -70,10 +71,17 @@ type Searcher struct {
 	data string
 }
 
+/* Enable CORS so that this backend can respond to calls
+ * from other domains. E.g from API integrators
+ */
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
+/*
+ * Scrutinse HTTP request and raise BadRequest error where necessary. Extract
+ * the request data if all goes well
+ */
 func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Query {
 	params := r.URL.Query()
 
@@ -145,13 +153,19 @@ func parseRequest(w http.ResponseWriter, r *http.Request, regx *regexp.Regexp) Q
 	return qParams
 }
 
+/* We've received a search request. Delegate to the right handlers to parse/validate
+ * the incoming data, perform the search and build the respose which will get sent to the client
+ */
 func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request) {
 	regx := regexp.MustCompile(`^[a-zA-Z]{3}[ a-zA-Z]*$`)
 	return func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
+		timeFmt := "2006.01.02 15:04:05"
 
 		query := parseRequest(w, r, regx)
+		fmt.Printf("%v\tHandling search for %v\n", time.Now().Format(timeFmt), query.searchTerm)
 		result := searcher.Search(query)
+		fmt.Printf("%v\tResults are in. Found %v in %v ms\n", time.Now().Format(timeFmt), result.Total, result.Duration)
 
 		jsonResp, err := json.Marshal(result)
 		if err != nil {
@@ -166,6 +180,9 @@ func handleSearch(searcher Searcher) func(w http.ResponseWriter, r *http.Request
 	}
 }
 
+/* Load the txt file into memory and be ready to search through
+ * it when a request comes in
+ */
 func (s *Searcher) Load(filename string) error {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -176,6 +193,9 @@ func (s *Searcher) Load(filename string) error {
 	return nil
 }
 
+/* We've received a request. Perform search and return portions
+ * of the data containing matches of the search term
+ */
 func (s *Searcher) Search(query Query) Result {
 	starTime := time.Now()
 
@@ -194,7 +214,7 @@ func (s *Searcher) Search(query Query) Result {
 		count = len(matches)
 		for _, pos := range matches {
 			data = append(data, Match{
-				Phrase: s.data[pos[0]-150 : pos[1]+150],
+				Phrase: s.data[pos[0]-100 : pos[1]+100],
 			})
 		}
 		data = data[start:end]

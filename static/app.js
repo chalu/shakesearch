@@ -7,8 +7,17 @@ const ShakeSearch = {
   Controller: {},
 };
 
+// Pattern to validate search term which should be
+// a word of >= 3 characters followed by none/more of such words
+// separated by space
 const validationPtrn = /^[a-zA-Z]{3}[ a-zA-Z]*$/;
 
+/**
+ * Submit handler for the search form. Validates search term
+ * and calls backed API to see if there are matches to display
+ * to the user
+ * @param {*} evt The HTML form submit event
+ */
 ShakeSearch.Controller.search = async (evt) => {
   evt.preventDefault();
   if (ShakeSearch.State.searching) return;
@@ -44,6 +53,11 @@ ShakeSearch.Controller.search = async (evt) => {
   }
 };
 
+/**
+ * Parses, formats and displays the search results from the server
+ * @param {object} results metadata response payload for the search
+ * @param {string} qry The term the user searched for
+ */
 ShakeSearch.Controller.displayResults = (results, qry) => {
   const parser = new DOMParser();
   const RE = RegExp;
@@ -52,9 +66,12 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
   const qryPtrn = new RE(qry, "gi");
 
   const entries = results.data.reduce((nodes, { phrase }) => {
-    const phraseHighlighted = phrase.match(qryPtrn).reduce((marked, q) => {
-      return marked.replace(q, `<mark>${q}</mark>`);
-    }, phrase);
+    const phraseHighlighted = phrase
+      .trim()
+      .match(qryPtrn)
+      .reduce((marked, q) => {
+        return marked.replace(q, `<mark>${q}</mark>`);
+      }, phrase);
 
     const node = parser.parseFromString(
       ShakeSearch.UI.resultItemTPL(phraseHighlighted),
@@ -91,18 +108,32 @@ ShakeSearch.Controller.displayResults = (results, qry) => {
   });
 };
 
+/**
+ * Build the HTML markup for each result from the server
+ * @param {string} phrase a matching phrase from the server
+ * @returns HTML string
+ */
 ShakeSearch.UI.resultItemTPL = (phrase) => {
   return `
   <div class="col">
     <div class="card border-dark mb-3">
       <div class="card-body">
-        <p class="card-text">...${phrase}...</p>
+        <pre class="card-text">
+          ${phrase}
+        </pre>
       </div>
     </div>
   </div>
   `;
 };
 
+/**
+ * Build the HTML markup for stats of the search operation
+ * @param {integer} totalFound how many matches were found for the query
+ * @param {integer} resultSize how many matches were returned with the response
+ * @param {integer} duration a sense of how long the server took to carry out the search
+ * @returns HTML string
+ */
 ShakeSearch.UI.resultStatsTPL = (totalFound, resultSize, duration = 500) => {
   let timeCue = "text-bg-dark";
   if (duration >= 2000) {
@@ -123,6 +154,11 @@ ShakeSearch.UI.resultStatsTPL = (totalFound, resultSize, duration = 500) => {
   `;
 };
 
+/**
+ * Gets the HTML elements for the given CSS selectors
+ * @param  {...string} selectors The selectors for the elements we need to get
+ * @returns Array of HTML nodes matched by the selectors
+ */
 ShakeSearch.UI.get = (...selectors) => {
   const nodes = selectors.reduce((gatherer, sel) => {
     gatherer.push(document.querySelector(sel));
@@ -133,6 +169,13 @@ ShakeSearch.UI.get = (...selectors) => {
   return nodes;
 };
 
+/**
+ * A UI activity to carry out, but only if opts.okayToProceed()
+ * evaluates to true and after opts.waitUntil has ellapsed
+ * @param {Functiont} todo
+ * @param {object} opts
+ * @returns Promise of the delayed/conditioned activity
+ */
 ShakeSearch.UI.task = async (todo, opts = {}) => {
   const { waitUntil = 0, okayToProceed = () => true } = opts;
 
@@ -160,8 +203,8 @@ ShakeSearch.UI.task = async (todo, opts = {}) => {
 };
 
 /**
- * Uses a Promise to show a hint after 2s of issuing
- * a search query, and no response from the server
+ * Uses a Promise to show a hint if no response from the server
+ * after 2s of issuing a search query
  * @returns Promise
  */
 ShakeSearch.UI.prepareToHintResponseDelay = () => {
@@ -174,6 +217,11 @@ ShakeSearch.UI.prepareToHintResponseDelay = () => {
   });
 };
 
+/**
+ * Use the HTML placeholder to hint the user how they
+ * can use the app to search, citing example search terms
+ * @param {HTMLInputElement} searchField The field whose placeholder will be used
+ */
 ShakeSearch.UI.setupTour = (searchField) => {
   let tourId;
   let tourIndex = 0;
@@ -218,6 +266,11 @@ ShakeSearch.UI.setupTour = (searchField) => {
   }, 2500);
 };
 
+/**
+ * Shows the user a message for a short period of time
+ * @param {string} msg The message to show
+ * @param {integer} dismissAfter How long before automatically dismissing the message
+ */
 ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   const snkBar = ShakeSearch.UI.get("#snackbar");
   requestAnimationFrame(() => {
@@ -232,6 +285,10 @@ ShakeSearch.UI.showSnackBar = (msg, dismissAfter = 3000) => {
   }, dismissAfter);
 };
 
+/**
+ * Use a visual cue to hint the user that their search has been initiated
+ * and the request sent to the backend
+ */
 ShakeSearch.UI.signalSearchStarted = () => {
   const [spnr, ico, input, btn] = ShakeSearch.UI.get(
     "#form span.spinner-grow",
@@ -250,6 +307,11 @@ ShakeSearch.UI.signalSearchStarted = () => {
   ShakeSearch.State.searching = true;
 };
 
+/**
+ * Use a visual cue to hint the user that their search request has completed.
+ * Completion could mean there was/wasn't a match or even that the server
+ * encountered an error
+ */
 ShakeSearch.UI.signalSearchEnded = () => {
   const [spnr, ico, input, btn] = ShakeSearch.UI.get(
     "#form span.spinner-grow",
@@ -268,6 +330,10 @@ ShakeSearch.UI.signalSearchEnded = () => {
   ShakeSearch.State.searching = false;
 };
 
+/**
+ * Start the app, setup event handlers and wait for
+ * the user to make their move
+ */
 ShakeSearch.Controller.startApp = () => {
   const form = ShakeSearch.UI.get("#form");
   if (!form) return;
