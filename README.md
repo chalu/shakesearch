@@ -32,26 +32,26 @@ Desktop view               |  Mobile view
 
 :fire: :fire: :fire:
 
-1. Designed and used [an API](https://tph-shakesearch.onrender.com/api/) as the contract between clients and the server implementation
-2. Enhanced the UI/UX. Applied responsive design with best practices for [web](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F&form_factor=desktop) and [mobile](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F)
-3. Support for case-insensitive search
-4. Support highlighting the occurences of the search term within each displayed result
-5. Ability to load the app with a search term in the URL and automatically execute the search. E.g `https://tph-shakesearch.onrender.com/?q=Hamlet` will load the app and issue a search for `Hamlet`. Users can now create bookmarks of searches or send search URLs to friends
-6. Validate search queries both on client and backend. How helpful is it to seach for two letter words?
-7. Support pagination (no UI yet) and prevent sending hundreds (potentially thousands) of results at once, when the user might likely only see/consume a few
-8. Prevent unecessary trips to backend by **not** issuing a search if the query **is the same** as what was last searched
-9. Enable CORS on server to enable API integrators (from other domains) search via API. E.g issuing `https://tph-shakesearch.onrender.com/search?q=Hamlet` in the browser or with `cURL` will return the JSON response of matches
+1.  Designed and used [an API](https://tph-shakesearch.onrender.com/api/) as the contract between clients and the server implementation
+2.  Enhanced the UI/UX. Applied responsive design with best practices for [web](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F&form_factor=desktop) and [mobile](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftph-shakesearch.onrender.com%2F)
+3.  Support for case-insensitive search
+4.  Support highlighting the occurences of the search term within each displayed result
+5.  Ability to load the app with a search term in the URL and automatically execute the search. E.g `https://tph-shakesearch.onrender.com/?q=Hamlet` will load the app and issue a search for `Hamlet`. Users can now create bookmarks of searches or send search URLs to friends
+6.  Validate search queries both on client and backend. How helpful is it to seach for two letter words?
+7.  Support pagination (no UI yet) and prevent sending hundreds (potentially thousands) of results at once, when the user might likely only see/consume a few
+8.  Prevent unecessary trips to backend by **not** issuing a search if the query **is the same** as what was last searched
+9.  Enable CORS on server to enable API integrators (from other domains) search via API. E.g issuing `https://tph-shakesearch.onrender.com/search?q=Hamlet` in the browser or with `cURL` will return the JSON response of matches
 10. Lots of code refator and enhancements across frontend and backend. See how [quality progressed over time](https://app.codacy.com/gh/chalu/shakesearch/dashboard?branch=dev) and see code quality status badge at top of this repo
 
 ### If I Had More Time
 
 :muscle: :muscle: :muscle:
 
-1. Support multi-word search
-2. Support search with mis-spelt words
-3. Add pagination UI so that users can navigate across all the results. Add `next` and `previous` links in response payload so that integrators/clients don't have to worry about construct them
-4. Benchmark and address performance bottlenecks/current approach e.g around using dynamic RegEx to find matches within a huge body of text
-5. Support results `ordering` and `sorting` by specified enums. E.g order the results by the frequency of the search term
-6. Perform search as fewer times as possible. E.g cache results by the search term, for subsequent requests of same search term
-7. Allow users "bookmark" or favorite result items they care about
-8. Search with voice
+1.  Support multi-word search
+2.  Support search with mis-spelt words
+3.  Add pagination UI so that users can navigate across all the results. Add `next` and `previous` links in response payload so that integrators/clients don't have to worry about construct them
+4.  Benchmark and address performance bottlenecks/current approach e.g around using dynamic RegEx to find matches within a huge body of text
+5.  Support results `ordering` and `sorting` by specified enums. E.g order the results by the frequency of the search term
+6.  Perform search as fewer times as possible. E.g cache results by the search term, for subsequent requests of same search term
+7.  Allow users "bookmark" or favorite result items they care about
+8.  Search with voice
